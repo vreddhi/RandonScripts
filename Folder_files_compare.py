@@ -1,20 +1,23 @@
 import os
 
-original_files = { }
+All_files = { }
+Original_jpeg_files = { }
+Hashed_jpeg_files = { }
 
 for file in os.listdir():
     if file.endswith(".jpg"):
         filename = file.split('.')[:-1]
-        original_files[file] = "MISSING"
-
-for file in os.listdir():
+        Original_files[filename] = "TRUE"
+        All_files[filename] = "TRUE"
     if file.endswith(".md5"):
         filename = file.split('.')[:-2]
-        if filename in original_files:
-            original_files[filename] = "BOTH_EXIST"
+        Hashed_jpeg_files[filename] = "TRUE"
+        All_files[filename] = "TRUE"  
 
 
-print 'Following jpeg files do not have the corresponding MD5 hash files'
-for key, value in original_files.items():
-    if original_files[key] == "MISSING":
+print 'Following files do not have a complimentary jpeg or md5 hash'
+for key in All_files:
+    if key in Original_files and if key in Hashed_jpeg_files:
+        donothing = "true"
+    else:
         print key

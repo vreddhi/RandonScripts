@@ -2,7 +2,7 @@
 
 Simple scripts:
 
-There are thre dictionaries.
+There are three dictionaries.
 1. All_files will contain all filenames.
 2. Original_jpeg_files will contain all jpeg image filenames.
 3. Hashed_jpeg_files will contain all MD5 filenames.

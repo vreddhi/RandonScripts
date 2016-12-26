@@ -1,22 +1,24 @@
 '''
 Python Script to parse a csv input file containing source and destination URLComponents
 and convert them to akamai PAPI specific json data. This script is limited to redirect
-behavior. You can find this script in 
+behavior. You can find this script in https://github.com/vreddhi/RandomScripts
 '''
 import csv
 import json
 import re
-
-print("\n\nOutput JSON file will be stored in JsonOutput.json  [If everything passes well]\n")
-InputFilename = input("Enter the inputfile CSV name with extension (Ex: redirect.csv): NOTE: File should be in current working directory:   ")
-
+import sys
 
 try:
-    fileHandler = open(InputFilename,'r')
-    inputFileReader = csv.reader(fileHandler)
-except (RuntimeError, TypeError, NameError,FileNotFoundError):
-    print("Are you sure this file exists. I couldnt find one")
+    InputFilename = sys.argv[1]
+except IndexError:
+    print("\n\nPlease enter the input filename as an argument\n")
     exit()
+
+try:
+    fileHandler = open(InputFilename)
+    inputFileReader = csv.reader(fileHandler)
+except FileNotFoundError:
+    print("Unable to find the input file ")
 
 jsonList = []
 outputFileHandler = open('JsonOutput.json','w')
@@ -35,17 +37,17 @@ def is_valid_url(url):
 #Function to Check and populate the match criterias
 def criteriaList(srcURLComponents,outputJson):
     criteria_values = []
+    criterias_list = [] #Fix to avoid Dictionary over-write of criteria values
     if srcURLComponents['Hostname'] and srcURLComponents['Hostname'] != '':
-        criterias_list = [] #Initialized here to avoid multiple occurances of same list
         criteria = {}
         criteria['options'] = {}
         criteria['name'] = 'hostname'
-        criteria['options']['values'] = srcURLComponents['Hostname']
+        criteria['options']['values'] = srcURLComponents['Hostname'].split()
         criterias_list.append(criteria)
     if srcURLComponents['Query_param'] and srcURLComponents['Query_param'] != '':
         paramString = str(srcURLComponents['Query_param'])
         paramStringPair = paramString.split('&')
-        criterias_list = [] #Initialized here to avoid multiple occurances of same list
+        #criterias_list = [] #Initialized here to avoid multiple occurances of same list
         for nameValuePair in paramStringPair:
             criteria = {}
             criteria['options'] = {}
@@ -60,8 +62,18 @@ def criteriaList(srcURLComponents,outputJson):
             criteria['options']['matchWildcardName'] = bool(False)
             criteria['options']['matchWildcardValue'] = bool(False)
             criteria['options']['parameterName'] = queryName
-            criteria['options']['values'] = queryValue
+            criteria['options']['values'] = queryValue.split()
             criterias_list.append(criteria)
+    if srcURLComponents['Path'] and srcURLComponents['Path'] != '':
+        criteria = {}
+        criteria['options'] = {}
+        criteria['name'] = "path"
+        criteria['options']['matchCaseSensitive'] = bool(False)
+        criteria['options']['matchOperator'] = "MATCHES_ONE_OF"
+        criteria['options']['values'] = "/"+str(srcURLComponents['Path'])
+        criteria['options']['values'] = criteria['options']['values'].split()
+        criterias_list.append(criteria)
+
     outputJson['criteria'] = criterias_list
 
 #Function to Check and populate the behavior values for Redirect
@@ -70,7 +82,7 @@ def determineBehaviorList(DstURLComponents,outputJson):
     behavior = {}
     behavior['name'] = 'redirect'
     behavior['options'] = {}
-    behavior['options']['destinationProtocol'] = DstURLComponents['Protocol']
+    behavior['options']['destinationProtocol'] = DstURLComponents['Protocol'].upper()
     behavior['options']['destinationHostname'] = "OTHER"
     behavior['options']['destinationHostnameOther'] = DstURLComponents['Hostname']
     behavior['options']['destinationPath'] = "OTHER"

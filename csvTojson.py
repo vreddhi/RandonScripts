@@ -99,7 +99,7 @@ def determineBehaviorList(DstURLComponents,outputJson):
 #Function to Check and populate URL componenets
 def fetchURLComponents(Url):
     URLComponents = {}
-    urlMatch = re.match(r"(^https?)://([a-zA-Z0-9.]*)/?([a-zA-Z0-9./-]*)\??(.*)",Url)
+    urlMatch = re.match(r"(^https?)://([a-zA-Z0-9.-]*)/?([a-zA-Z0-9./-]*)\??(.*)",Url)
     if urlMatch:
         URLComponents['Protocol'] = urlMatch.group(1)
         URLComponents['Hostname'] = urlMatch.group(2)

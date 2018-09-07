@@ -14,28 +14,47 @@ final_result = {}
 final_result['snc'] = 0
 final_result['sac'] = 0
 
-total_requests = 20
+
+
+total_requests = 50
 url = 'http://img.grouponcdn.com/deal/VAmXvXyNjkxBLhybuTVDq6uLjVH/VA-1000x600/v1/t220x134.jpg?cache_bust=true'
 origin_1 = 'img-sac1.o.grouponcdn.com'
 
 
 for i in range(total_requests):
-    req = urllib.request.Request(url, headers=headers)
-    response = urllib.request.urlopen(req)
-    #print(dir(response))
-    #print(response.getheaders())
+    try:
+        url = 'http://img.grouponcdn.com/deal/VAmXvXyNjkxBLhybuTVDq6uLjVH/VA-1000x600/v1/t220x134.jpg?cache_bust=true&count=' + str(i)
+        req = urllib.request.Request(url, headers=headers)
+        response = urllib.request.urlopen(req)
+        #print(dir(response))
+        #print(response.getheaders())
 
-    session_info_List = response.getheader('X-Akamai-Session-Info').split(',')
-    for everySessionInfo in session_info_List:
-        name_value = everySessionInfo.split(';')
-        if name_value[0].strip() == 'name=PMUSER_ORIGIN_TO_USE':
-            print(name_value[1])
-            if origin_1 in name_value[1]:
-                final_result['sac'] += 1
-            else:
-                final_result['snc'] += 1
+        session_info_List = response.getheader('X-Akamai-Session-Info').split(',')
+        #print(session_info_List)
+        for everySessionInfo in session_info_List:
+            name_value = everySessionInfo.split(';')
+            if name_value[0].strip() == 'name=PMUSER_ORIGIN_TO_USE':
+                print(name_value[1])
+                if origin_1 in name_value[1]:
+                    final_result['sac'] += 1
+                else:
+                    final_result['snc'] += 1
+    except urllib.error.HTTPError as HTTPError:
+        #print(HTTPError.headers)
+        session_info_List = HTTPError.getheader('X-Akamai-Session-Info').split(',')
+        #print(session_info_List)
+        for everySessionInfo in session_info_List:
+            name_value = everySessionInfo.split(';')
+            if name_value[0].strip() == 'name=PMUSER_ORIGIN_TO_USE':
+                print(' Error: ' + name_value[1])
+                if origin_1 in name_value[1]:
+                    final_result['sac'] += 1
+                else:
+                    final_result['snc'] += 1
+
+    print(' SAC: ' + str(final_result['sac']) + ' SNC: '+ str(final_result['snc']))
 
 
 
-print('Origin_1 SAC Requests: ' + str(final_result['sac']) + '\n')
-print('Origin_2 SNC Requests: ' + str(final_result['snc']) + '\n')
+print('Total Origin_1 SAC Requests: ' + str(final_result['sac']) + '\n')
+print('Total Origin_2 SNC Requests: ' + str(final_result['snc']) + '\n')
